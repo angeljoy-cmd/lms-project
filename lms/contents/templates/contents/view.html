@@ -1,0 +1,51 @@
+{# templates/contents/view_content.html #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ content.title }}</title>
+  <style>
+    .viewer { margin: 1em 0; }
+    iframe, embed, img, video, audio { width: 100%; }
+    video, audio { max-height: 400px; }
+  </style>
+</head>
+<body>
+  <h1>{{ content.title }}</h1>
+
+  <div class="viewer">
+    {% if is_pdf %}
+      <embed src="{{ content.file.url }}" type="application/pdf">
+    {% elif is_word %}
+  <iframe
+  src="{{ office_embed_url }}"
+  frameborder="0" style="height:600px">
+</iframe>
+
+
+
+    {% elif is_image %}
+      <img src="{{ content.file.url }}" alt="{{ content.title }}">
+    {% elif is_video %}
+      <video controls>
+        <source src="{{ content.file.url }}" type="{{ content.mime_type }}">
+        Your browser does not support the video tag.
+      </video>
+    {% elif is_audio %}
+      <audio controls>
+        <source src="{{ content.file.url }}" type="{{ content.mime_type }}">
+        Your browser does not support the audio element.
+      </audio>
+    {% else %}
+      <p>No preview available for “{{ content.mime_type }}”.</p>
+    {% endif %}
+  </div>
+
+  <p>
+    <a href="{{ content.file.url }}" download>
+      <button>Download</button>
+    </a>
+    <a href="{% url 'content_list' %}">← Back to list</a>
+  </p>
+</body>
+</html>

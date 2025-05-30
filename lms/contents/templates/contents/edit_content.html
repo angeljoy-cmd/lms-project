@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow space-y-6">
+  <h2 class="text-3xl font-bold text-gray-800">Edit Content</h2>
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+    <input type="hidden" name="subject" value="{{ content.subject.id }}">
+
+    <!-- Title -->
+    <div>
+      <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+      <input type="text" id="title" name="title" value="{{ content.title }}" required
+             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+      <textarea id="description" name="description" required
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                rows="4">{{ content.description }}</textarea>
+    </div>
+
+    <!-- Topic Selector and New Topic -->
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700">Topic</label>
+      <div class="flex items-center space-x-4">
+        <select name="topic" id="topic-select"
+                class="flex-1 border border-gray-300 rounded-md shadow-sm p-2">
+          <option value="">-- Select Existing Topic --</option>
+          {% for topic in topics %}
+            <option value="{{ topic.id }}" {% if content.topic.id == topic.id %}selected{% endif %}>
+              {{ topic.topic_name }}
+            </option>
+          {% endfor %}
+        </select>
+        <label class="inline-flex items-center text-sm text-gray-700">
+          <input type="checkbox" id="create-new-topic-toggle" class="mr-2" />
+          New Topic
+        </label>
+      </div>
+      <div id="new-topic-field" class="hidden">
+        <input type="text" name="new_topic" placeholder="Enter new topic name"
+               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+      </div>
+    </div>
+
+    <!-- Files -->
+    <div>
+      <label for="file-input" class="block text-sm font-medium text-gray-700">Upload New Files</label>
+      <input type="file" name="new_files" id="file-input" multiple
+             class="mt-1 block w-full text-gray-700" />
+      <ul class="mt-2 list-disc list-inside text-gray-800">
+        {% for f in content.files.all %}
+          <li class="flex items-center justify-between">
+            <span class="truncate">{{ f.file.name|slice:"-30:" }}</span>
+            <label class="inline-flex items-center text-sm text-red-600">
+              <input type="checkbox" name="remove_file" value="{{ f.id }}" class="mr-1"/>
+              Remove
+            </label>
+          </li>
+        {% empty %}
+          <li class="text-gray-500 italic">No existing files</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Links -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Reference Links</label>
+      <div id="link-container" class="space-y-2 mt-1">
+        {% for link in content.links.all %}
+          <div class="flex items-center space-x-2">
+            <input type="url" name="links" value="{{ link.link }}" placeholder="https://..."
+                   class="flex-1 border border-gray-300 rounded-md shadow-sm p-2" />
+            <label class="inline-flex items-center text-sm text-red-600">
+              <input type="checkbox" name="remove_link" value="{{ link.id }}" class="mr-1" />
+              Remove
+            </label>
+          </div>
+        {% endfor %}
+        <div class="flex items-center space-x-2">
+          <input type="url" name="links" placeholder="Paste new link"
+                 class="flex-1 border border-gray-300 rounded-md shadow-sm p-2" />
+          <button type="button" id="add-link"
+                  class="text-blue-600 hover:underline text-sm">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assign to Students -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Assign to Students</label>
+      <div class="mt-2 space-y-1 max-h-48 overflow-y-auto border rounded-md p-2">
+        {% for s in students %}
+          <label class="inline-flex items-center space-x-2">
+            <input type="checkbox" name="students" value="{{ s.id }}"
+                   {% if s in content.assigned_to.all %}checked{% endif %}
+                   class="form-checkbox" />
+            <span class="text-gray-800">{{ s.username }}</span>
+          </label><br>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end space-x-4 pt-4">
+      <a href="{% url 'contents:content_list' %}?subject={{ content.subject.id }}"
+         class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+        Cancel
+      </a>
+      <button type="submit"
+              class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Toggle visibility of new topic input
+  document.getElementById('create-new-topic-toggle').addEventListener('change', e => {
+    document.getElementById('new-topic-field').classList.toggle('hidden', !e.target.checked);
+    document.getElementById('topic-select').disabled = e.target.checked;
+  });
+
+  // Dynamically add new link inputs
+  document.getElementById('add-link').addEventListener('click', () => {
+    const div = document.createElement('div');
+    div.className = 'flex items-center space-x-2 mt-1';
+    div.innerHTML = `
+      <input type="url" name="links" placeholder="Paste new link"
+             class="flex-1 border border-gray-300 rounded-md shadow-sm p-2" />
+      <button type="button" onclick="this.parentElement.remove()"
+              class="text-red-600 hover:underline text-sm">❌</button>
+    `;
+    document.getElementById('link-container').appendChild(div);
+  });
+</script>
+
+{% endblock %}

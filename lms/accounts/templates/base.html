@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LMS{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+    #file-list div, .link-input {
+        margin-bottom: 5px;
+    }
+    .remove-file-btn, .remove-link-btn {
+        color: red;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+</style>
+
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal h-screen flex flex-col">
+    <nav class="bg-blue-800 text-white p-4 flex justify-between items-center shadow-md">
+        <!-- Menu toggle button -->
+
+        <a href="" class="text-2xl font-bold rounded-md px-3 py-2 hover:bg-blue-700 transition">LMS</a>
+
+        <div>
+    {% if user.is_authenticated %}
+        <span class="mr-4">Hello, {{ user.username }}!</span>
+
+        {% if current_subject %}
+            <span class="mr-4 font-semibold text-yellow-300">
+                📘 {{ current_subject.name }}
+            </span>
+        {% endif %}
+
+
+        <form action="{% url 'accounts:logout' %}" method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 transition ml-2">Logout</button>
+        </form>
+    {% else %}
+        <a href="{% url 'accounts:login' %}" class="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition">Login</a>
+    {% endif %}
+</div>
+
+    </nav>
+
+    <div class="flex flex-grow">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-white border-r p-4 transition-all duration-300 ease-in-out hidden lg:block">
+            <h2 class="text-xl font-semibold mb-4">Menu</h2>
+            <ul class="space-y-2">
+                <li>
+                    <a href="{% url 'contents:select_subj' %}" class="block px-2 py-1 rounded hover:bg-blue-100">🏠 Home</a>
+                </li>
+               {% if sidebar_subjects %}
+                    {% for subject in sidebar_subjects %}
+                        <li>
+                            <a href="{% url 'contents:content_list' %}?subject={{ subject.id }}" class="block px-2 py-1 rounded hover:bg-blue-100">
+                                📘 {{ subject.subject_name }}
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li><em>No subjects found</em></li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-grow container mx-auto p-4 transition-all duration-300 ease-in-out">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <footer class="bg-gray-800 text-white p-4 text-center mt-auto">
+        &copy; 2025 LMS. All rights reserved.
+    </footer>
+
+    <script>
+        const toggleButton = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+
+        toggleButton.addEventListener('click', () => {
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                mainContent.classList.remove('w-full');
+            } else {
+                sidebar.classList.add('hidden');
+                mainContent.classList.add('w-full');
+            }
+        });
+    </script>
+</body>
+
+</html>
